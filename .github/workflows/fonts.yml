@@ -12,7 +12,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
 
@@ -23,9 +24,13 @@ jobs:
 
     - name: Install Inkscape
       run: |
-        sudo add-apt-repository -y ppa:inkscape.dev/stable
-        sudo apt -y update
-        sudo apt -y install inkscape
+        brew install inkscape
+
+    # - name: Install Inkscape
+    #   run: |
+    #     sudo add-apt-repository -y ppa:inkscape.dev/stable
+    #     sudo apt-get update
+    #     sudo apt-get -y install inkscape
 
     - name: Generate font files
       run: |
