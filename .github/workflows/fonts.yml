@@ -26,6 +26,10 @@ jobs:
       run: |
         brew install inkscape
 
+    - name: Install fontforge
+      run: |
+        brew install fontforge
+
     # - name: Install Inkscape
     #   run: |
     #     sudo add-apt-repository -y ppa:inkscape.dev/stable
