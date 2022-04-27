@@ -1,0 +1,64 @@
+name: fonts
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v2
+      name: Setup Python 3.7
+      with:
+        python-version: 3.7
+
+    - name: Install Inkscape
+      run: sudo apt-get install inkscape
+
+    - name: Generate font files
+      run: |
+        make wws.ttf
+
+    - uses: actions/upload-artifact@v3
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        name: wws-fonts
+        path: |
+          wws.*
+        retention-days: 1
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: wws-fonts
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Get Version
+        id: get_version
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: softprops/action-gh-release@v1
+        with:
+          body: Automatic release of ${{ github.ref }}
+          files: |
+            wws.*
