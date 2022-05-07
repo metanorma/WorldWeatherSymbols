@@ -410,8 +410,13 @@ ICONS := \
 	ww_PresentWeather/PresentWeather_ww_DoubleSlash.svg
 
 ICONS := $(addprefix icons-stripped/,$(ICONS))
+
+all: wws.ttf
+
+all_icons: $(ICONS)
+
 clean:
-	rm -fr png/ tmp/
+	rm -fr png/ tmp/ wws.ttf wws.woff wws.svg
 
 dist: png
 	mkdir -p tmp/$(BASENAME)
