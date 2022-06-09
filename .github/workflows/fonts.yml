@@ -22,23 +22,41 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install Inkscape
-      run: |
-        brew install inkscape
-
     - name: Install fontforge build dependencies
       run: |
         brew install cmake glib pango gtk+3 ninja libspiro sphinx
 
-    - name: Install fontforge@master
-      # run: |
-      #   brew install fontforge
+    - name: Get fontforge@master hash
+      id: get-fontforge-hash
       run: |
-        git clone https://github.com/fontforge/fontforge.git
-        cd fontforge
+        echo ::set-output name=hash::$( git ls-remote https://github.com/fontforge/fontforge.git master | cut -f1 )
+
+    - name: Cache fontforge@master build
+      id: cache-fontforge-build
+      uses: actions/cache@v3
+      with:
+        path: fontforge/build
+        key: ${{ runner.os }}-fontforge-${{ steps.get-fontforge-hash.outputs.hash }}
+
+    - uses: actions/checkout@v3
+      # if: steps.cache-fontforge-build.outputs.cache-hit != 'true'
+      with:
+        repository: fontforge/fontforge
+        ref: ${{ steps.get-sha.outputs.sha }}
+        path: fontforge
+
+    # - name: Install fontforge
+    #   run: |
+    #     brew install fontforge
+
+    - name: Install fontforge@master
+      if: steps.cache-fontforge-build.outputs.cache-hit != 'true'
+      working-directory: fontforge
+      run: |
         mkdir build
         cd build
         cmake -GNinja ..
+        ninja
 
     # - name: Install Inkscape
     #   run: |
@@ -46,14 +64,26 @@ jobs:
     #     sudo apt-get update
     #     sudo apt-get -y install inkscape
 
+    - name: Set fontforge@master path
+      working-directory: fontforge/build
+      run: |
+        echo "$PWD/bin" >> $GITHUB_PATH
+
     - name: Test fontforge@master
       run: |
-        echo "$HOME/fontforge/build/bin" >> $GITHUB_PATH
+        echo "PATH is $PATH"
+        echo "ls -al fontforge/build/bin"
+        ls -al fontforge/build/bin
+        echo "which fontforge"
+        which fontforge
         ./test.py
+
+    - name: Install Inkscape
+      run: |
+        brew install inkscape
 
     - name: Generate font files
       run: |
-        echo "$HOME/fontforge/build/bin" >> $GITHUB_PATH
         make wws.ttf
 
     - uses: actions/upload-artifact@v3
