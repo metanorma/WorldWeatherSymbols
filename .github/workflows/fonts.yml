@@ -31,7 +31,7 @@ jobs:
       #   brew install fontforge
       run: |
         brew install cmake glib pango gtk+3 ninja
-        git clone git@github.com:fontforge/fontforge.git
+        git clone https://github.com/fontforge/fontforge.git
         cd fontforge
         mkdir build
         cd build
