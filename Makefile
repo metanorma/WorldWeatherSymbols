@@ -440,11 +440,12 @@ icons-stripped: icons
 icons-stripped/%: | icons-stripped
 	echo $*
 	mkdir -p $(dir $@) ; \
-	inkscape --batch-process --actions="select-all:all;SelectionUnGroup;select-all:all;object-stroke-to-path;select-all:all;object-to-path;select-all:all;EditSelectAllInAllLayers;SelectionUnion;select-all:all;org.inkscape.effect.filter.CleanEdges;FitCanvasToSelection;select-all:all;transform-scale:1;export-plain-svg;export-dpi:96;export-area-drawing;export-area;export-filename:$@;export-overwrite;export-do;" icons/$*
+	inkscape --batch-process --actions="select-all:all;SelectionUnGroup;select-all:all;object-stroke-to-path;select-all:all;object-to-path;select-all:all;EditSelectAllInAllLayers;SelectionUnion;select-all:all;org.inkscape.effect.filter.CleanEdges;FitCanvasToSelection;select-all:all;transform-scale:1;export-height:1000px;export-width:1000px;export-plain-svg;export-area-drawing;export-filename:$@;export-overwrite;export-do;" icons/$*
 
+# svgs2ttf:
+# 	curl -sSL -o $@ https://raw.githubusercontent.com/fontist/svgs2ttf/master/svgs2ttf && \
+# 	chmod +x $@
 svgs2ttf:
-	curl -sSL -o $@ https://raw.githubusercontent.com/fontist/svgs2ttf/master/svgs2ttf && \
-	chmod +x $@
 
 wws.ttf wws.woff wws.svg: icons.json svgs2ttf $(ICONS)
 	./svgs2ttf $<

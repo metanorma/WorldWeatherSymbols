@@ -1,6 +1,6 @@
 { "props":
-  { "ascent": 96
-  , "descent": 32
+  { "ascent": 55
+  , "descent": 0
   , "em": 128
   , "encoding": "UnicodeFull"
   , "lang": "English (US)"
