@@ -35,7 +35,7 @@ jobs:
       id: cache-fontforge-build
       uses: actions/cache@v3
       with:
-        path: fontforge/build
+        path: fontforge
         key: ${{ runner.os }}-fontforge-${{ steps.get-fontforge-hash.outputs.hash }}
 
     - uses: actions/checkout@v3
