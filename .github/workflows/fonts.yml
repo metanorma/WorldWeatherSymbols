@@ -1,0 +1,122 @@
+name: fonts
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # runs-on: ubuntu-latest
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v3
+      name: Setup Python 3.x
+      with:
+        python-version: '3.x'
+
+    - name: Install fontforge build dependencies
+      run: |
+        brew install cmake glib pango gtk+3 ninja libspiro sphinx
+
+    - name: Get fontforge@master hash
+      id: get-fontforge-hash
+      run: |
+        echo ::set-output name=hash::$( git ls-remote https://github.com/fontforge/fontforge.git master | cut -f1 )
+
+    - name: Cache fontforge@master build
+      id: cache-fontforge-build
+      uses: actions/cache@v3
+      with:
+        path: fontforge
+        key: ${{ runner.os }}-fontforge-${{ steps.get-fontforge-hash.outputs.hash }}
+
+    - uses: actions/checkout@v3
+      # if: steps.cache-fontforge-build.outputs.cache-hit != 'true'
+      with:
+        repository: fontforge/fontforge
+        ref: ${{ steps.get-sha.outputs.sha }}
+        path: fontforge
+
+    # - name: Install fontforge
+    #   run: |
+    #     brew install fontforge
+
+    - name: Install fontforge@master
+      if: steps.cache-fontforge-build.outputs.cache-hit != 'true'
+      working-directory: fontforge
+      run: |
+        mkdir build
+        cd build
+        cmake -GNinja ..
+        ninja
+
+    # - name: Install Inkscape
+    #   run: |
+    #     sudo add-apt-repository -y ppa:inkscape.dev/stable
+    #     sudo apt-get update
+    #     sudo apt-get -y install inkscape
+
+    - name: Set fontforge@master path
+      working-directory: fontforge/build
+      run: |
+        echo "$PWD/bin" >> $GITHUB_PATH
+
+    - name: Test fontforge@master
+      run: |
+        echo "PATH is $PATH"
+        echo "ls -al fontforge/build/bin"
+        ls -al fontforge/build/bin
+        echo "which fontforge"
+        which fontforge
+        ./test.py
+
+    - name: Install Inkscape
+      run: |
+        brew install inkscape
+
+    - name: Generate font files
+      run: |
+        make wws.ttf
+
+    - uses: actions/upload-artifact@v3
+      # if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        name: wws-fonts
+        path: |
+          wws.*
+        retention-days: 1
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: wws-fonts
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Get Version
+        id: get_version
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: softprops/action-gh-release@v1
+        with:
+          body: Automatic release of ${{ github.ref }}
+          files: |
+            wws.*
